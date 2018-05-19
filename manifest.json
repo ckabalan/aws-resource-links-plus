@@ -1,0 +1,19 @@
+{
+	"manifest_version": 2,
+
+	"name": "AWS Resource Links Plus",
+	"version": "0.1.0",
+	"description": "Improves the AWS Console by adding cross-reference links where missing",
+	"permissions": [
+		"tabs", "http://console.aws.amazon.com/*", "activeTab"
+	],
+	"content_scripts": [ {
+		"css": [ "styles.css" ],
+		"js": [ "content.js" ],
+		"matches": [ "https://console.aws.amazon.com/*" ]
+	} ],
+	"web_accessible_resources": [ "script.js" ],
+	"browser_action": {
+		"default_icon": "icon.png"
+	}
+}
