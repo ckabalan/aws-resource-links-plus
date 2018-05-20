@@ -1,22 +1,54 @@
 var mappings = {
 	'ec2/v2': [ {
+		"_comment": "EC2 Details: Subnet ID -> Filtered VPC Subnet List",
 		"selector": "span#detailsSubnetId",
 		"service": "vpc",
 		"objtype": "subnets",
-		"filtertype": "filter",
-		"link": "<a href='https://console.aws.amazon.com/vpc/home?region={{{RESOURCE_REGION}}}#subnets:filter={{{RESOURCE_ID}}}'>{{{RESOURCE_ID}}}</a>"
+		"filtertype": "filter"
 	}, {
+		"_comment": "EC2 Details: VPC ID -> Filtered VPC List",
 		"selector": "span#detailsNetwork",
 		"service": "vpc",
 		"objtype": "vpcs",
-		"filtertype": "filter",
-		"link": "<a href='https://console.aws.amazon.com/vpc/home?region={{{RESOURCE_REGION}}}#vpcs:filter={{{RESOURCE_ID}}}'>{{{RESOURCE_ID}}}</a>"
+		"filtertype": "filter"
 	}, {
-		"selector": "#gwt-debug-tabularDetails > table > tbody > tr:nth-child(12) > td > div > div > div > span:not([style]):not([class]):not([id])",
+		"_comment": "EC2 Details: Key Pair Name -> Filtered EC2 KeyPair List",
+		"selector": "#gwt-debug-tabularDetails > table > tbody > tr:nth-child(12) > td:nth-child(1) > div > div > div > span:not([style]):not([class]):not([id])",
 		"service": "ec2/v2",
 		"objtype": "KeyPairs",
-		"filtertype": "search",
-	} ]
+		"filtertype": "keyName"
+	}, {
+		"_comment": "EC2 Details: Instance State -> Filtered EC2 Instance List",
+		"selector": "span#detailsInstanceState",
+		"service": "ec2/v2",
+		"objtype": "Instances",
+		"filtertype": "instanceState"
+	}, {
+		"_comment": "EC2 Details: Instance Type -> Filtered EC2 Instance List",
+		"selector": "span#detailsInstanceType",
+		"service": "ec2/v2",
+		"objtype": "Instances",
+		"filtertype": "instanceType"
+	}, {
+		"_comment": "EC2 Details: Availability Zone -> Filtered EC2 Instance List",
+		"selector": "#gwt-debug-tabularDetails > table > tbody > tr:nth-child(6) > td:nth-child(1) > div > div > div > span:not([style]):not([class]):not([id])",
+		"service": "ec2/v2",
+		"objtype": "Instances",
+		"filtertype": "availabilityZone"
+	}, {
+		"_comment": "EC2 Details: Private IP -> Filtered EC2 Network Interface List",
+		"selector": "#gwt-debug-tabularDetails > table > tbody > tr:nth-child(6) > td:nth-child(2) > div > div > div > span:not([style]):not([class]):not([id])",
+		"service": "ec2/v2",
+		"objtype": "NIC",
+		"filtertype": "privateIpAddress"
+	}, {
+		"_comment": "EC2 Details: Tags -> Filtered EC2 Instance List",
+		"selector": "#gwt-debug-columnNr-0 > div > div:not([style])",
+		"following_selector": "div:not([style])",
+		"service": "ec2/v2",
+		"objtype": "Instances",
+		"filtertype": "{{{SELECTOR}}}"
+	}]
 }
 // Get the Service and the Region
 var url_re = /(?:http(?:s?):\/\/console\.aws\.amazon\.com\/)(ec2\/v2)(?:\/home\?region=)((?:ap|ca|cn|eu|sa|us)-(?:north|south)?(?:east|west|central)?-\d)\#.+/i;
@@ -37,11 +69,14 @@ var observer = new MutationObserver(function(mutations) {
 			mappings[service].forEach(function(curMapping) {
 				var element = mutation.target.querySelector(curMapping.selector);
 				if (element) {
-					console.log(element);
-					if (!element.innerHTML.includes('href')) {
-						element.innerHTML = "<a href='https://console.aws.amazon.com/" + curMapping.service + "/home?region=" + region + "#" + curMapping.objtype + ":" + curMapping.filtertype + "=" + element.innerHTML + "'>" + element.innerHTML + "</a>"
+					if (curMapping.hasOwnProperty('following_selector')) {
+						$(element).next(curMapping.following_selector);
+					} else {
+						if (!element.innerHTML.includes('href')) {
+							element.innerHTML = "<a href='https://console.aws.amazon.com/" + curMapping.service + "/home?region=" + region + "#" + curMapping.objtype + ":" + curMapping.filtertype + "=" + element.innerHTML + "'>" + element.innerHTML + "</a>"
+						}
+						return true;
 					}
-					return true;
 				}
 			});
         }
